@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer')
 
 const main = async () => {
-  const browser = await puppeteer.launch({ headless: false, slowMo: 10 })
+  const browser = await puppeteer.launch({ headless: true, slowMo: 10 })
   const page = await browser.newPage()
   await page.goto('https://site2.sbisec.co.jp/ETGate/')
 
