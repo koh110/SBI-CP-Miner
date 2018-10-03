@@ -1,7 +1,16 @@
 const puppeteer = require('puppeteer')
+const { WebClient } = require('@slack/client')
+const { SLACK_TOKEN, SLACK_POST_CHANNEL } = process.env
+let slack = null
+if (SLACK_TOKEN) {
+  slack = new WebClient(SLACK_TOKEN)
+}
 
 const main = async () => {
-  const browser = await puppeteer.launch({ headless: true, slowMo: 10 })
+  const browser = await puppeteer.launch({
+    headless: true, slowMo: 10,
+    args: ['--no-sandbox']
+  })
   const page = await browser.newPage()
   await page.goto('https://site2.sbisec.co.jp/ETGate/')
 
@@ -25,6 +34,7 @@ const main = async () => {
     await page.waitFor(1000)
   }
 
+  let counter  = 0
   const pages = await browser.pages()
   for (const page of pages) {
     if (page.url().indexOf('/oeapw011?') === -1) {
@@ -48,9 +58,15 @@ const main = async () => {
 
     await page.click('input[name="order_btn"]')
     await page.waitFor(1000)
+    counter++
   }
 
   browser.close()
+
+  if (slack) {
+    const res = await slack.chat.postMessage({ channel: SLACK_POST_CHANNEL, text: `done miner: ${counter}件` })
+    console.log('post slack:', JSON.stringify(res))
+  }
 }
 
 if (!process.env.SBI_ID || !process.env.SBI_PASS || !process.env.SBI_ORDER_PASS) {
@@ -58,4 +74,9 @@ if (!process.env.SBI_ID || !process.env.SBI_PASS || !process.env.SBI_ORDER_PASS)
   process.exit(1)
 }
 
-main().catch(err => console.error(err))
+main().catch((err) => {
+  console.error(err)
+  if (slack) {
+    slack.chat.postMessage({ channel: SLACK_POST_CHANNEL, text: `error miner: ${JSON.stringify(err)}` })
+  }
+})

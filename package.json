@@ -1,6 +1,7 @@
 {
   "private": true,
   "dependencies": {
+    "@slack/client": "^4.6.0",
     "puppeteer": "^1.1.1"
   }
 }
