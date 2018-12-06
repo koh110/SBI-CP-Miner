@@ -45,7 +45,7 @@ const main = async () => {
     await page.waitForSelector('td.mtext input', { visible: true })
 
     const n = await page.$$eval('td.mtext', (elements) => {
-      const e = elements.filter(e => e.innerText.indexOf('（売買単位/') > 0).shift()
+      const e = elements.filter(e => e.innerText.includes('（売買単位/')).shift()
       return /（売買単位\/([0-9]+)株）/.test(e.textContent.trim()) && RegExp.$1
     })
 
@@ -77,6 +77,13 @@ if (!process.env.SBI_ID || !process.env.SBI_PASS || !process.env.SBI_ORDER_PASS)
 main().catch((err) => {
   console.error(err)
   if (slack) {
-    slack.chat.postMessage({ channel: SLACK_POST_CHANNEL, text: `error miner: ${JSON.stringify(err)}` })
+    slack.chat.postMessage({ channel: SLACK_POST_CHANNEL, text: `error miner: ${err}` })
+      .then(() => process.exit(1))
+      .catch((err) => {
+        console.error('failed error post to slack:', err)
+        process.exit(1)
+      })
+  } else {
+    process.exit(1)
   }
 })
