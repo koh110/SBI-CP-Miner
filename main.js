@@ -12,7 +12,7 @@ const main = async () => {
     args: ['--no-sandbox']
   })
   const page = await browser.newPage()
-  await page.goto('https://site2.sbisec.co.jp/ETGate/')
+  await page.goto('https://site2.sbisec.co.jp/ETGate/', { waitUntil: 'networkidle2' })
 
   await page.waitForSelector('.sb-box-sub-02-content', { visible: true })
   await page.type('#user_input input', process.env.SBI_ID)
@@ -22,13 +22,11 @@ const main = async () => {
   await page.waitForSelector('#link02 img', { visible: true })
   await page.click('#link02 img[alt="取引"]')
 
-  await page.waitForSelector('.account_type .act', { visible: true })
-  await page.$eval('[alt="新規上場　公募増資・売出"]', (e) => {
-    e.click()
-  })
+  await page.waitForSelector('.md-l-tab-01', { visible: true })
+  await page.click('.md-l-tab-01 td:nth-child(6)')
 
-  await page.waitForSelector('.menu-text', { visible: true })
-  const elements = await page.$$('td.mtext img[alt="申込"]')
+  await page.waitForSelector('.md-l-mainarea-01', { visible: true })
+  const elements = await page.$$('img[alt="申込"]')
   for (const el of elements) {
     await el.click({ button: 'middle' })
     await page.waitFor(1000)
@@ -42,18 +40,18 @@ const main = async () => {
     }
 
     await page.bringToFront()
-    await page.waitForSelector('td.mtext input', { visible: true })
+    await page.waitForSelector('input[name="suryo"]', { visible: true })
 
-    const n = await page.$$eval('td.mtext', (elements) => {
+    const n = await page.$$eval('td', (elements) => {
       const e = elements.filter(e => e.innerText.includes('（売買単位/')).shift()
       return /（売買単位\/([0-9]+)株）/.test(e.textContent.trim()) && RegExp.$1
     })
 
-    await page.type('td.mtext input[type="text"]', n)
+    await page.type('input[name="suryo"]', n)
 
     await page.click('#strPriceRadio')
-    await page.type('td.mtext input[type="password"]', process.env.SBI_ORDER_PASS)
-    await page.click('td.mtext input[type="submit"]')
+    await page.type('input[type="password"]', process.env.SBI_ORDER_PASS)
+    await page.click('input[type="submit"][name="order_kakunin"]')
     await page.waitFor(1000)
 
     await page.click('input[name="order_btn"]')
