@@ -50,7 +50,7 @@ const main = async () => {
     await page.type('input[name="suryo"]', n)
 
     await page.click('#strPriceRadio')
-    await page.type('input[type="password"]', process.env.SBI_ORDER_PASS)
+    await page.type('input[type="password"][name="tr_pass"]', process.env.SBI_ORDER_PASS)
     await page.click('input[type="submit"][name="order_kakunin"]')
     await page.waitFor(1000)
 
